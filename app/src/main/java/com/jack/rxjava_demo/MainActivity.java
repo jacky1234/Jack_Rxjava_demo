@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void onScheduler(View view) {
         Observable.just(1, 2, 3, 4) // IO 线程，由 subscribeOn() 指定
+                //指定 subscribe() 发生在 IO 线程
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.newThread())
                 .map(new Func1<Integer, String>() {
