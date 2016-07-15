@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void onScheduler(View view) {
         Observable.just(1, 2, 3, 4) // IO 线程，由 subscribeOn() 指定
-                //指定 subscribe() 发生在 IO 线程
+                //被创建的事件的内容 1、2、3、4 将会在 IO 线程发出
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.newThread())
                 .map(new Func1<Integer, String>() {
@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         return res;
                     }
-                }) // IO 线程，由 observeOn() 指定
+                }) // 指定 Subscriber 的回调发生在主线程
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<Integer>() {   // Android 主线程，由 observeOn() 指定
                     @Override
@@ -112,33 +112,15 @@ public class MainActivity extends AppCompatActivity {
         lists.add(new Student(20, "helen", Arrays.asList("物理", "化学", "语文")));
         lists.add(new Student(30, "alice", Arrays.asList("生物", "地理")));
 
-        /** 原始实现 **/
-//        for (Student std : lists) {
-//            for (String s : std.getCourses()) {
-//                if ("语文".equals(s)) {
-//                    Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->stu choose 语文：" + std);
-//                    break;
-//                }
-//            }
-//        }
-
-
         Observable.from(lists)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(new Func1<Student, Observable<String>>() {
+                .filter(new Func1<Student, Boolean>() {
                     @Override
-                    public Observable<String> call(Student stu) {
-                        return Observable.from(stu.getCourses())
-                                .filter(new Func1<String, Boolean>() {
-                                    @Override
-                                    public Boolean call(String s) {
-                                        return s.equals("语文");
-                                    }
-                                });
+                    public Boolean call(Student student) {
+                        return student.getCourses().contains("语文");
                     }
-                })
-                .subscribe(new Subscriber<String>() {
+                }).subscribe(new Subscriber<Student>() {
                     @Override
                     public void onCompleted() {
                         Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onCompleted");
@@ -150,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNext(String s) {
-                        Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onNext:" + s);
+                    public void onNext(Student s) {
+                        Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onNext:" + s.getName());
                     }
                 });
 
@@ -170,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
         lists.add(new Student(20, "helen", Arrays.asList("物理", "化学")));
         lists.add(new Student(30, "alice", Arrays.asList("生物", "地理")));
 
-        Observable.from(lists) // 输入类型 String
+        Observable.from(lists)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map(new Func1<Student, Integer>() {
@@ -191,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->call:" + integer);
                     }
                 });
-
     }
 
     /**
@@ -205,11 +186,16 @@ public class MainActivity extends AppCompatActivity {
         lists.add(new Student(30, "alice", Arrays.asList("生物", "地理")));
 
         Observable.from(lists)
-                .subscribeOn(Schedulers.io())               // 指定 subscribe() 发生在 IO 线程,也叫事件产生的线程
+                .subscribeOn(Schedulers.io())               // 被创建的事件的内容 1、2、3、4 将会在 IO 线程发出,也叫事件产生的线程
                 .observeOn(AndroidSchedulers.mainThread())  // 指定 Subscriber 的回调发生在主线程,也叫事件消费的线程
                 .flatMap(new Func1<Student, Observable<String>>() {
                     @Override
                     public Observable<String> call(Student student) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         return Observable.from(student.getCourses());
                     }
                 })
