@@ -47,4 +47,11 @@
         android:onClick="onCompose"
         android:text="compose"></Button>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:onClick="onRetrofit"
+        android:text="retrofit"></Button>
+
 </LinearLayout>

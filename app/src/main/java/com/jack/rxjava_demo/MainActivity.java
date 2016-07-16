@@ -1,35 +1,29 @@
 package com.jack.rxjava_demo;
 
-import android.annotation.TargetApi;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.Toast;
 
-import com.jack.rxjava_demo.com.jack.rxjava_demo.bean.Student;
+import com.jack.rxjava_demo.bean.Constructor;
+import com.jack.rxjava_demo.bean.Student;
+import com.jack.rxjava_demo.retrofit.GithubApi;
+import com.jack.rxjava_demo.retrofit.GithubService;
 
-import java.io.File;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Response;
 import rx.Observable;
-import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.observers.Observers;
 import rx.schedulers.Schedulers;
 
 /**
@@ -121,21 +115,21 @@ public class MainActivity extends AppCompatActivity {
                         return student.getCourses().contains("语文");
                     }
                 }).subscribe(new Subscriber<Student>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onCompleted");
-                    }
+            @Override
+            public void onCompleted() {
+                Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onCompleted");
+            }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onError:" + e.toString());
-                    }
+            @Override
+            public void onError(Throwable e) {
+                Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onError:" + e.toString());
+            }
 
-                    @Override
-                    public void onNext(Student s) {
-                        Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onNext:" + s.getName());
-                    }
-                });
+            @Override
+            public void onNext(Student s) {
+                Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->onNext:" + s.getName());
+            }
+        });
 
 
     }
@@ -290,5 +284,70 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "Thread:" + Thread.currentThread().toString() + "->call:" + s);
                     }
                 });
+    }
+
+
+    private Subscription subscription;
+
+    public void onRetrofit(View view) throws IOException {
+        final GithubApi GithubApi = GithubService.createGithubService();
+
+        //第一种，自己创建子线程请求
+//        final Call<List<Constructor>> call = GithubApi.getGroupList("square", "retrofit");
+//        new Thread(){
+//            @Override
+//            public void run() {
+//                final Response<List<Constructor>> execute;
+//                try {
+//                    //网络请求不能再主线程
+//                    execute = call.execute();
+//                    final List<Constructor> constructors = execute.body();
+//                    for (Constructor constructor : constructors){
+//                        Log.d(TAG, constructor.toString());
+//                    }
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }.start();
+
+        /**
+         * 方法二，通过RxJava,进行线程的切换
+         * 1.Retrofit的配置需要改 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+         * 2.接口需要改
+         * Observable<List<Constructor>> contributorsRx(@Path("owner") String owner, @Path("repo") String repo);
+         * 3.需要在 Activity的onDestroy方法解注册
+         */
+
+        subscription = GithubApi.contributorsRx("square", "retrofit")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<List<Constructor>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(List<Constructor> constructors) {
+                        for (Constructor constructor : constructors) {
+                            Log.d(TAG, constructor.toString());
+                        }
+                    }
+                });
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (subscription != null) {
+            subscription.unsubscribe();
+        }
     }
 }

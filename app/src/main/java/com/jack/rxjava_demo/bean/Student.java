@@ -1,4 +1,4 @@
-package com.jack.rxjava_demo.com.jack.rxjava_demo.bean;
+package com.jack.rxjava_demo.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
