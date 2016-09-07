@@ -1,8 +1,6 @@
 package com.jack.rxjava_demo.retrofit;
 
-import com.jack.rxjava_demo.bean.BaseEntity;
 import com.jack.rxjava_demo.bean.Constructor;
-import com.jack.rxjava_demo.bean.School;
 
 import java.util.List;
 
@@ -18,11 +16,16 @@ import rx.Observable;
 public interface GithubApi {
 
     @GET("/repos/{owner}/{repo}/contributors")
-    Call<List<Constructor>> getGroupList(@Path("owner") String owner, @Path("repo") String repo);
+    Call<List<Constructor>> getGroupList(
+            @Path("owner") String owner,
+            @Path("repo") String repo);
 
+    //如果你想要使用 RxJava 来代替 call, 你需要一个 Call Adapter Factory
     @GET("/repos/{owner}/{repo}/contributors")
-    Observable<List<Constructor>> contributorsRx(@Path("owner") String owner, @Path("repo") String repo);
+    Observable<List<Constructor>> repoContributors(
+            @Path("owner") String owner,
+            @Path("repo") String repo);
 
-    @GET("/api-index-schoolList.html")
-    Call<BaseEntity<List<School>>> getStudentList();
+
+
 }

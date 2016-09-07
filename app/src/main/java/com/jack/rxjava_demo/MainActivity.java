@@ -5,10 +5,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 
+import com.google.gson.Gson;
+import com.jack.rxjava_demo.bean.BaseEntity;
 import com.jack.rxjava_demo.bean.Constructor;
+import com.jack.rxjava_demo.bean.School;
 import com.jack.rxjava_demo.bean.Student;
 import com.jack.rxjava_demo.retrofit.GithubApi;
-import com.jack.rxjava_demo.retrofit.GithubService;
+import com.jack.rxjava_demo.retrofit.ServiceCreator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,9 +19,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import rx.Observable;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -290,7 +293,6 @@ public class MainActivity extends AppCompatActivity {
     private Subscription subscription;
 
     public void onRetrofit(View view) throws IOException {
-        final GithubApi GithubApi = GithubService.createGithubService();
 
         //第一种，自己创建子线程请求
 //        final Call<List<Constructor>> call = GithubApi.getGroupList("square", "retrofit");
@@ -315,32 +317,47 @@ public class MainActivity extends AppCompatActivity {
          * 方法二，通过RxJava,进行线程的切换
          * 1.Retrofit的配置需要改 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
          * 2.接口需要改
-         * Observable<List<Constructor>> contributorsRx(@Path("owner") String owner, @Path("repo") String repo);
+         * Observable<List<Constructor>> repoContributors(@Path("owner") String owner, @Path("repo") String repo);
          * 3.需要在 Activity的onDestroy方法解注册
          */
 
-        subscription = GithubApi.contributorsRx("square", "retrofit")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<List<Constructor>>() {
-                    @Override
-                    public void onCompleted() {
+//        subscription = ServiceCreator.createGithubService()
+//                .repoContributors("square", "retrofit")
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Subscriber<List<Constructor>>() {
+//                    @Override
+//                    public void onCompleted() {
+//
+//                    }
+//
+//                    @Override
+//                    public void onError(Throwable e) {
+//
+//                    }
+//
+//                    @Override
+//                    public void onNext(List<Constructor> constructors) {
+//                        for (Constructor constructor : constructors) {
+//                            Log.d(TAG, constructor.toString());
+//                        }
+//                    }
+//                });
 
-                    }
 
-                    @Override
-                    public void onError(Throwable e) {
+        Call<BaseEntity<List<School>>> call = ServiceCreator.createBlackBoardService().getSchoolInfo();
+        call.enqueue(new Callback<BaseEntity<List<School>>>() {
+            @Override
+            public void onResponse(Response<BaseEntity<List<School>>> response) {
+                final BaseEntity<List<School>> body = response.body();
+                final List<School> data = body.getData();
+            }
 
-                    }
-
-                    @Override
-                    public void onNext(List<Constructor> constructors) {
-                        for (Constructor constructor : constructors) {
-                            Log.d(TAG, constructor.toString());
-                        }
-                    }
-                });
-
+            @Override
+            public void onFailure(Throwable t) {
+                Log.d(TAG,"error");
+            }
+        });
     }
 
     @Override
