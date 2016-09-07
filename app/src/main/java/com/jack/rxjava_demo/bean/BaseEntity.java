@@ -1,5 +1,7 @@
 package com.jack.rxjava_demo.bean;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 /**
@@ -7,8 +9,10 @@ import java.io.Serializable;
  */
 
 public class BaseEntity<E> implements Serializable {
+    @SerializedName("code")
     private int code;
-    private String info;
+
+    @SerializedName("info")
     private E data;
 
     public int getCode() {
@@ -19,13 +23,6 @@ public class BaseEntity<E> implements Serializable {
         this.code = code;
     }
 
-    public String getInfo() {
-        return info;
-    }
-
-    public void setInfo(String info) {
-        this.info = info;
-    }
 
     public E getData() {
         return data;

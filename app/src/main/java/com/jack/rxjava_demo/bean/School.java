@@ -11,20 +11,20 @@ public class School {
     private String schoolId;
     private String schoolName;
 
-    public void setSchoolId(String schoolId){
+    public void setSchoolId(String schoolId) {
         this.schoolId = schoolId;
     }
-    public String getSchoolId(){
+
+    public String getSchoolId() {
         return this.schoolId;
     }
-    public void setSchoolName(String schoolName){
+
+    public void setSchoolName(String schoolName) {
         this.schoolName = schoolName;
     }
-    public String getSchoolName(){
+
+    public String getSchoolName() {
         return this.schoolName;
     }
-
-
-
 
 }
