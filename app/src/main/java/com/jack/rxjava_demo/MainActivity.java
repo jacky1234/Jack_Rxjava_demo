@@ -4,20 +4,24 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.jack.rxjava_demo.bean.BaseEntity;
 import com.jack.rxjava_demo.bean.Constructor;
 import com.jack.rxjava_demo.bean.School;
 import com.jack.rxjava_demo.bean.Student;
+import com.jack.rxjava_demo.retrofit.BlackBoardApi;
 import com.jack.rxjava_demo.retrofit.GithubApi;
 import com.jack.rxjava_demo.retrofit.ServiceCreator;
+import com.jack.rxjava_demo.tools.ContentUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -345,12 +349,30 @@ public class MainActivity extends AppCompatActivity {
 //                });
 
 
-        Call<BaseEntity<List<School>>> call = ServiceCreator.createBlackBoardService().getSchoolInfo();
-        call.enqueue(new Callback<BaseEntity<List<School>>>() {
+//        Call<BaseEntity<List<School>>> call = ServiceCreator.createBlackBoardService().getSchoolInfo();
+//        call.enqueue(new Callback<BaseEntity<List<School>>>() {
+//            @Override
+//            public void onResponse(Response<BaseEntity<List<School>>> response) {
+//                final BaseEntity<List<School>> body = response.body();
+//                final List<School> data = body.getData();
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable t) {
+//                Log.d(TAG,"error");
+//            }
+//        });
+
+
+        final Call<ResponseBody> call = ServiceCreator.getInstance().getService(BlackBoardApi.class).getSchoolJson();
+        call.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Response<BaseEntity<List<School>>> response) {
-                final BaseEntity<List<School>> body = response.body();
-                final List<School> data = body.getData();
+            public void onResponse(Response<ResponseBody> response) {
+                try {
+                    ContentUtils.showToast(MainActivity.this,"onResponse:"+response.body().string());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override

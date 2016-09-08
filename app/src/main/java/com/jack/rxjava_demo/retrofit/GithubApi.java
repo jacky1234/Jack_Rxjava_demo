@@ -1,6 +1,7 @@
 package com.jack.rxjava_demo.retrofit;
 
 import com.jack.rxjava_demo.bean.Constructor;
+import com.jack.rxjava_demo.retrofit.base.IApiMark;
 
 import java.util.List;
 
